@@ -5,23 +5,21 @@ import Dashboard from './components/Dashboard'
 import { fetchComplaints, fetchDashboard, fetchLocations, getHealth } from './services/api'
 
 const getApiUrl = async () => {
-  const defaultUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001'
+  const defaultUrl =
+    import.meta.env.VITE_API_BASE_URL ||
+    'https://ai-chatbot-1-z5wf.onrender.com'
+
   try {
-    const res = await fetch(`${defaultUrl}/health`, { timeout: 2000 })
+    const res = await fetch(`${defaultUrl}/health`)
     if (res.ok) return defaultUrl
   } catch (e) {}
-  // Try fallback ports if default fails
-  for (const port of [8000, 8001, 8002]) {
-    try {
-      const fallbackUrl = `http://127.0.0.1:${port}`
-      const res = await fetch(`${fallbackUrl}/health`, { timeout: 1000 })
-      if (res.ok) return fallbackUrl
-    } catch (e) {}
-  }
+
   return defaultUrl
 }
 
-let apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001'
+let apiUrl =
+  import.meta.env.VITE_API_BASE_URL ||
+  'https://ai-chatbot-1-z5wf.onrender.com'
 
 function App() {
   const [complaints, setComplaints] = useState([])
@@ -35,8 +33,10 @@ function App() {
     const detectApi = async () => {
       const detectedUrl = await getApiUrl()
       console.log('Detected API URL:', detectedUrl)
+
       setCurrentApiUrl(detectedUrl)
       apiUrl = detectedUrl
+
       getHealth(detectedUrl)
         .then((data) => {
           console.log('Health check passed:', data)
@@ -48,14 +48,23 @@ function App() {
           setMessage('Backend not reachable. Start the API and refresh.')
         })
     }
+
     detectApi()
   }, [])
 
   useEffect(() => {
     if (currentApiUrl) {
-      fetchComplaints(currentApiUrl).then(setComplaints).catch(() => setComplaints([]))
-      fetchDashboard(currentApiUrl).then(setDashboard).catch(() => setDashboard(null))
-      fetchLocations(currentApiUrl).then((data) => setLocations(data.locations || [])).catch(() => setLocations([]))
+      fetchComplaints(currentApiUrl)
+        .then(setComplaints)
+        .catch(() => setComplaints([]))
+
+      fetchDashboard(currentApiUrl)
+        .then(setDashboard)
+        .catch(() => setDashboard(null))
+
+      fetchLocations(currentApiUrl)
+        .then((data) => setLocations(data.locations || []))
+        .catch(() => setLocations([]))
     }
   }, [currentApiUrl])
 
@@ -66,9 +75,11 @@ function App() {
           <h1>GovTech Grievance Portal</h1>
           <p>{message}</p>
         </div>
+
         {health && (
           <div className="status-chip">
-            <strong>API:</strong> {health.status} | <strong>DB:</strong> {health.database}
+            <strong>API:</strong> {health.status} | <strong>DB:</strong>{' '}
+            {health.database}
           </div>
         )}
       </header>
@@ -84,7 +95,9 @@ function App() {
         <section className="panel panel-right">
           <Dashboard summary={dashboard} locations={locations} />
           <div className="panel-divider" />
+
           <h2>Recent complaints</h2>
+
           {complaints.length === 0 ? (
             <p>No complaints yet.</p>
           ) : (
@@ -95,8 +108,10 @@ function App() {
                     <span>{item.ticket_id}</span>
                     <strong>{item.status}</strong>
                   </div>
+
                   <h3>{item.title}</h3>
                   <p>{item.description}</p>
+
                   <div className="complaint-meta">
                     <span>{item.department}</span>
                     <span>{item.priority}</span>
